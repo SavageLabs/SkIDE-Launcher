@@ -52,7 +52,9 @@ class Installer : Application() {
     override fun start(primaryStage: Stage) {
 
         stage = primaryStage
-        primaryStage.title = "SkIde Launcher"
+        primaryStage.title = "Sk-IDE Launcher"
+        
+        updating = "Updating Sk-IDE..."
 
         val loader = FXMLLoader()
         val parent = loader.load<Parent>(javaClass.getResourceAsStream("Gui.fxml"))
@@ -81,7 +83,7 @@ class Installer : Application() {
                     folder.mkdir()
                     if (!binFolder.exists()) binFolder.mkdir()
                     updateProgress(25.0, 100.0)
-                    updateMessage("Updating SkIde...")
+                    updateMessage(updating)
                     update()
                     if (!versionFile.exists()) versionFile.createNewFile()
                     Files.write(versionFile.toPath(), version.toByteArray(), StandardOpenOption.TRUNCATE_EXISTING)
@@ -90,7 +92,7 @@ class Installer : Application() {
                 if (!binFolder.exists()) {
                     binFolder.mkdir()
                     updateProgress(25.0, 100.0)
-                    updateMessage("Updating SkIde...")
+                    updateMessage(updating)
                     update()
                     if (!versionFile.exists()) versionFile.createNewFile()
 
@@ -98,11 +100,11 @@ class Installer : Application() {
                     primaryStage.close()
                     return null
                 }
-                val ideFile = File(binFolder, "SkIde.jar")
+                val ideFile = File(binFolder, "Sk-IDE.jar")
                 if (!ideFile.exists()) {
                     update()
                     updateProgress(25.0, 100.0)
-                    updateMessage("Updating SkIde...")
+                    updateMessage(updating)
                     if (!versionFile.exists()) versionFile.createNewFile()
 
                     Files.write(versionFile.toPath(), version.toByteArray(), StandardOpenOption.TRUNCATE_EXISTING)
@@ -113,7 +115,7 @@ class Installer : Application() {
                 if (!versionFile.exists()) {
                     update()
                     updateProgress(25.0, 100.0)
-                    updateMessage("Updating SkIde...")
+                    updateMessage(updating)
                     if (!versionFile.exists()) versionFile.createNewFile()
                     Files.write(versionFile.toPath(), version.toByteArray(), StandardOpenOption.TRUNCATE_EXISTING)
                     primaryStage.close()
@@ -125,14 +127,14 @@ class Installer : Application() {
                 if (oldVersion != version) {
                     update()
                     updateProgress(25.0, 100.0)
-                    updateMessage("Updating SkIde...")
+                    updateMessage(updating)
                     Files.write(versionFile.toPath(), version.toByteArray(), StandardOpenOption.TRUNCATE_EXISTING)
                     primaryStage.close()
 
                     return null
                 } else {
                     updateProgress(100.0, 100.0)
-                    updateMessage("Starting SkIde")
+                    updateMessage("Starting Sk-IDE")
                     Thread.sleep(2500)
                     start()
                 }
@@ -176,7 +178,7 @@ class Installer : Application() {
                stage.close()
                val folder = File(System.getProperty("user.home"), ".skide")
                val binFolder = File(folder, "bin")
-               val ideFile = File(binFolder, "SkIde.jar")
+               val ideFile = File(binFolder, "Sk-IDE.jar")
 
                val classLoader = ClassLoader.getSystemClassLoader() as URLClassLoader
                val method = URLClassLoader::class.java.getDeclaredMethod("addURL", URL::class.java)
@@ -195,7 +197,7 @@ class Installer : Application() {
        } else {
            val folder = File(System.getProperty("user.home"), ".skide")
            val binFolder = File(folder, "bin")
-           val ideFile = File(binFolder, "SkIde.jar")
+           val ideFile = File(binFolder, "Sk-IDE.jar")
 
            Thread {
                val java = File(File(System.getProperty("java.home"), "bin"), "java").absolutePath
@@ -213,7 +215,7 @@ class Installer : Application() {
     fun update() {
         val folder = File(System.getProperty("user.home"), ".skide")
         val binFolder = File(folder, "bin")
-        val ideFile = File(binFolder, "SkIde.jar")
+        val ideFile = File(binFolder, "Sk-IDE.jar")
 
         println("Updating")
         downloadFile("https://liz3.net/sk/depot/SkIde.jar", ideFile.absolutePath)
