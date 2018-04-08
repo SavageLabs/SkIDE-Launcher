@@ -21,7 +21,7 @@ import javax.net.ssl.HttpsURLConnection
 
 
 fun downloadFile(target: String, path: String) {
-    val url = URL(target);
+    val url = URL(target)
     val bis = BufferedInputStream(url.openStream())
     val fis = FileOutputStream(File(path))
     val buffer = ByteArray(1024)
@@ -102,7 +102,7 @@ class Controller {
 
 class Installer : Application() {
 
-    lateinit var stage: Stage
+    private lateinit var stage: Stage
     override fun start(primaryStage: Stage) {
 
         stage = primaryStage
