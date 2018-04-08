@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Terminal=false
+Type=Application
+Name=SKIDE
+Exec=/usr/share/skide/bin/jre1.8.0_162/bin/java -jar /usr/share/skide/bin/launcher.jar
+Icon=/usr/share/skide/bin/icon.png
+Categories=Utility;Development;

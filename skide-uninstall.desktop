@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Terminal=true
+Type=Application
+Name=SKIDE Uninstall
+Exec=/usr/share/skide/bin/uninstall.sh
+Icon=/usr/share/skide/bin/icon.png
+Categories=Utility;Development;
