@@ -1,6 +1,4 @@
 # installer
 The Sk-IDE Launcher
 
-This is a simple launcher, that updates Sk-IDE when needed and then launches Sk-IDE it self
-
-cd ~/Downloads/ && wget URL && chmod +x name && ./NAME
+In this repository which contains the install Scripts and the launcher code, which handles updates the IDE and launches it.

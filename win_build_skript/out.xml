@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>gui</headerType>
+  <jar>D:\Projects\skide-installer\build\libs\Installer.jar</jar>
+  <outfile>D:\Sk-ide_sampledir\Sk-IDE.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>high</priority>
+  <downloadUrl>http://java.com/download</downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>D:\Sk-ide_sampledir\favicon.ico</icon>
+  <classPath>
+    <mainClass>com.skide.installer.InstallerKt</mainClass>
+    <cp>bin/libs.jar</cp>
+  </classPath>
+  <jre>
+    <path>jre11</path>
+    <bundledJre64Bit>true</bundledJre64Bit>
+    <bundledJreAsFallback>false</bundledJreAsFallback>
+    <minVersion>9.0.0</minVersion>
+    <maxVersion>11.0.222</maxVersion>
+    <jdkPreference>preferJre</jdkPreference>
+    <runtimeBits>64/32</runtimeBits>
+  </jre>
+</launch4jConfig>
