@@ -1,10 +1,7 @@
 package com.skide.installer.core
 
 import com.skide.installer.State
-import com.skide.installer.utils.downloadFile
-import com.skide.installer.utils.getOS
-import com.skide.installer.utils.httpRequest
-import com.skide.installer.utils.osToNumber
+import com.skide.installer.utils.*
 import org.json.JSONObject
 import java.io.File
 import java.nio.file.Files
@@ -77,7 +74,10 @@ class Processor(args: Array<String>) {
             val ideFile = File(binFolder, "ide.jar")
             val builder = ProcessBuilder()
             val list = ArrayList<String>()
-            list.add(File("jre11/bin/javaw.exe").absolutePath)
+            if(getOS() == OperatingSystemType.WINDOWS)
+                list.add(File("jre11/bin/javaw.exe").absolutePath)
+            else
+                list.add(File("jre11/bin/java").absolutePath)
             list.add("-jar")
             list.add(ideFile.absolutePath)
             State.args.forEach {
