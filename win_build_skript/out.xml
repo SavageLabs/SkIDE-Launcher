@@ -2,8 +2,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>D:\Projects\skide-installer\build\libs\Installer.jar</jar>
-  <outfile>D:\Sk-ide_sampledir\Sk-IDE.exe</outfile>
+  <jar>D:\Projects\installer\installer_code\build\libs\Installer.jar</jar>
+  <outfile>D:\skide-test-dir\Sk-IDE.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
@@ -13,11 +13,7 @@
   <stayAlive>false</stayAlive>
   <restartOnCrash>false</restartOnCrash>
   <manifest></manifest>
-  <icon>D:\Sk-ide_sampledir\favicon.ico</icon>
-  <classPath>
-    <mainClass>com.skide.installer.InstallerKt</mainClass>
-    <cp>bin/libs.jar</cp>
-  </classPath>
+  <icon>D:\Projects\installer\assets\favicon.ico</icon>
   <jre>
     <path>jre11</path>
     <bundledJre64Bit>true</bundledJre64Bit>

@@ -11,7 +11,7 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{84E92368-3C6D-4FF6-BA0A-5EF42A0C50C5}
+AppId={{428D7D72-7935-4C52-A581-0D20AFE9168E}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -22,9 +22,9 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName=C:\{#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile=D:\Projects\SkIDE\LICENSE
-OutputDir=D:\Sk-ide_sampledir\isso_out
+OutputDir=D:\skide-test-dir\inno_out
 OutputBaseFilename=Sk-IDE-Installer
-SetupIconFile=D:\Sk-ide_sampledir\favicon.ico
+SetupIconFile=D:\Projects\installer\assets\favicon.ico
 Compression=lzma
 SolidCompression=yes
 PrivilegesRequired=lowest
@@ -61,8 +61,10 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\Sk-ide_sampledir\Sk-IDE.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Sk-ide_sampledir\jre11\*"; DestDir: "{app}\jre11"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\skide-test-dir\Sk-IDE.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\skide-test-dir\jre11\*"; DestDir: "{app}\jre11"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Source: "D:\skide-test-dir\bin\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Source: "D:\skide-test-dir\conf\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

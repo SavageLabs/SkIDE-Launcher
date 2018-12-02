@@ -7,11 +7,10 @@ import com.skide.installer.utils.httpRequest
 import com.skide.installer.utils.osToNumber
 import org.json.JSONObject
 import java.io.File
-import java.net.URL
-import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import javax.swing.JOptionPane
+
 
 class Processor(args: Array<String>) {
 
@@ -38,39 +37,27 @@ class Processor(args: Array<String>) {
         if (!binFolder.exists()) binFolder.mkdir()
     }
 
-    private fun getLocalVersions(): Pair<String, String> {
+    private fun getLocalVersions(): String? {
         val file = File(configFolder, "versions")
-        if (!file.exists()) {
-            return Pair("undefined", "undefined")
-        }
+        if (!file.exists())
+            return "undefined"
         val obj = JSONObject(String(Files.readAllBytes(file.toPath())))
-        val binaryVersion = obj.getString("binary")
-        val libraryVersion = obj.getString("library")
-
-        return Pair(binaryVersion, libraryVersion)
+        return obj.getString("binary")
     }
 
-    private fun updateLibrary(newVersion: String, currentBinary: String) {
-        JOptionPane.showMessageDialog(null, "SK-IDE is updating its core libraries..")
-        val t = "https://skide.21xayah.com/?_q=get&component=library&os=$osNum&ver=$newVersion"
-        downloadFile(t, File(binFolder, "libs.jar").absolutePath)
-        writeVersionFile(currentBinary, newVersion)
-
-        Runtime.getRuntime().exec(File(folder, "Sk-IDE.exe").absolutePath)
-        System.exit(0)
-    }
-
-    private fun updateBinary(newVersion: String, currentLibrary: String) {
+    private fun updateBinary(newVersion: String, cb: () -> Unit) {
+        Thread {
+            val t = "https://skide.21xayah.com/?_q=get&component=binary&os=$osNum&ver=$newVersion"
+            downloadFile(t, File(binFolder, "ide.jar").absolutePath)
+            writeVersionFile(newVersion)
+            cb()
+        }.start()
         JOptionPane.showMessageDialog(null, "SK-IDE is updating...")
-        val t = "https://skide.21xayah.com/?_q=get&component=binary&os=$osNum&ver=$newVersion"
-        downloadFile(t, File(binFolder, "ide.jar").absolutePath)
-        writeVersionFile(newVersion, currentLibrary)
     }
 
-    private fun writeVersionFile(bver: String, lVer: String) {
+    private fun writeVersionFile(bver: String) {
         val obj = JSONObject()
         obj.put("binary", bver)
-        obj.put("library", lVer)
 
         Files.write(
             File(configFolder, "versions").toPath(),
@@ -79,44 +66,46 @@ class Processor(args: Array<String>) {
         )
     }
 
-    private fun getRemoteVersions(): Pair<String, String> {
+    private fun getRemoteVersions(): String {
         val versionResult = JSONObject(httpRequest("https://skide.21xayah.com/?_q=version").getBodyStr())
-        val binaryVersion = versionResult.getString("binary")
-        val libraryVersion = versionResult.getString("library")
 
-        return Pair(binaryVersion, libraryVersion)
+        return versionResult.getString("binary")
     }
 
     fun start() {
         Thread {
             val ideFile = File(binFolder, "ide.jar")
-            val child = URLClassLoader(
-                arrayOf(URL(ideFile.toURI().toURL().toString())), Processor::class.java.classLoader
-            )
-            val coreManager = Class.forName("com.skide.CoreManager", true, child)
-            val instance = coreManager.newInstance()
-            coreManager.getDeclaredMethod("bootstrap", Array<String>::class.java, ClassLoader::class.java)
-                .invoke(instance, arrayOf(""), child)
-
+            val builder = ProcessBuilder()
+            val list = ArrayList<String>()
+            list.add(File("jre11/bin/javaw.exe").absolutePath)
+            list.add("-jar")
+            list.add(ideFile.absolutePath)
+            State.args.forEach {
+                list.add(it)
+            }
+            builder.command(list)
+            val proc = builder.start()
+            Runtime.getRuntime().addShutdownHook(Thread {
+                proc.destroy()
+            })
+            while (proc.isAlive) {
+                Thread.sleep(10)
+            }
         }.start()
     }
-
-    fun setup(): Processor {
+    fun setup() {
+        if(State.args.isNotEmpty()) {
+            start()
+            return
+        }
         val remoteVersions = getRemoteVersions()
         val localVersions = getLocalVersions()
-
         val ideFile = File(binFolder, "ide.jar")
-        val libFile = File(binFolder, "libs.jar")
-        if (remoteVersions.second != localVersions.second || !libFile.exists()) updateLibrary(
-            remoteVersions.second,
-            localVersions.first
-        )
-        if (remoteVersions.first != localVersions.first || !ideFile.exists()) updateBinary(
-            remoteVersions.first,
-            localVersions.second
-        )
-
-        return this
+        if (remoteVersions != localVersions || !ideFile.exists())
+            updateBinary(remoteVersions) {
+                start()
+            }
+        else
+            start()
     }
-
 }

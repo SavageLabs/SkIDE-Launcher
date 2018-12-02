@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Main-Class: com.skide.installer.InstallerKt
+Name: jar
+Specification-Title: jar
+Specification-Version: 1.0
+Specification-Vendor: jar
+Implementation-Title: jar
+Implementation-Version: 1.0
+Implementation-Vendor: jar
+

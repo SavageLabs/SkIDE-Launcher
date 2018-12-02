@@ -23,7 +23,7 @@ ext.platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'wi
 
 group 'com.skide'
 version '1.0'
-mainClassName = 'com.skide.installer.MainKt'
+mainClassName = 'com.skide.installer.InstallerKt'
 
 
 sourceCompatibility = 1.11

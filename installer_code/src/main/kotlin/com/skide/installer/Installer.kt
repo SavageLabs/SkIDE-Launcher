@@ -12,6 +12,6 @@ object State {
 
 fun main(args:Array<String>) {
     State.args = args
-    Processor(args).setup().start()
+    Processor(args).setup()
 
 }
