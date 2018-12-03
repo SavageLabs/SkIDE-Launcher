@@ -13,8 +13,8 @@ class Processor(args: Array<String>) {
 
     var configFolder: File
     var binFolder: File
-    val os = getOS()
-    val osNum = osToNumber(os)
+    private val os = getOS()
+    private val osNum = osToNumber(os)
     var folder = File(File(".").canonicalPath)
 
     init {
@@ -45,7 +45,14 @@ class Processor(args: Array<String>) {
     private fun updateBinary(newVersion: String, cb: () -> Unit) {
         Thread {
             val t = "https://skide.21xayah.com/?_q=get&component=binary&os=$osNum&ver=$newVersion"
-            downloadFile(t, File(binFolder, "ide.jar").absolutePath)
+            if (os == OperatingSystemType.WINDOWS) {
+                downloadFile(t, File(binFolder, "ide.exe").absolutePath)
+            } else if (os == OperatingSystemType.MAC_OS) {
+                downloadFile(t, File("Sk-IDE.app/Contents/MacOS/ide.jar").absolutePath)
+
+            } else {
+                downloadFile(t, File(binFolder, "ide.jar").absolutePath)
+            }
             writeVersionFile(newVersion)
             cb()
         }.start()
@@ -71,36 +78,45 @@ class Processor(args: Array<String>) {
 
     fun start() {
         Thread {
-            val ideFile = File(binFolder, "ide.jar")
+            val os = getOS()
             val builder = ProcessBuilder()
             val list = ArrayList<String>()
-            if(getOS() == OperatingSystemType.WINDOWS)
-                list.add(File("jre11/bin/javaw.exe").absolutePath)
-            else
-                list.add(File("jre11/bin/java").absolutePath)
-            list.add("-jar")
-            list.add(ideFile.absolutePath)
+            when (os) {
+                OperatingSystemType.WINDOWS -> {
+                    val ideFile = File(binFolder, "ide.exe")
+                    list.add(ideFile.absolutePath)
+                }
+                OperatingSystemType.MAC_OS -> {
+                    list.add("open")
+                    list.add("-a")
+                    list.add("Sk-IDE.app")
+                }
+                else -> {
+                    val ideFile = File(binFolder, "ide.jar")
+                    list.add(ideFile.absolutePath)
+                }
+            }
             State.args.forEach {
                 list.add(it)
             }
             builder.command(list)
-            val proc = builder.start()
-            Runtime.getRuntime().addShutdownHook(Thread {
-                proc.destroy()
-            })
-            while (proc.isAlive) {
-                Thread.sleep(10)
-            }
+            builder.start()
         }.start()
     }
+
     fun setup() {
-        if(State.args.isNotEmpty()) {
+        if (State.args.isNotEmpty()) {
             start()
             return
         }
+        val os = getOS()
         val remoteVersions = getRemoteVersions()
         val localVersions = getLocalVersions()
-        val ideFile = File(binFolder, "ide.jar")
+        val ideFile = when (os) {
+            OperatingSystemType.WINDOWS -> File(binFolder, "ide.exe")
+            OperatingSystemType.MAC_OS -> File("Sk-IDE.app/Contents/MacOS/ide.jar")
+            else -> File(binFolder, "ide.jar")
+        }
         if (remoteVersions != localVersions || !ideFile.exists())
             updateBinary(remoteVersions) {
                 start()
