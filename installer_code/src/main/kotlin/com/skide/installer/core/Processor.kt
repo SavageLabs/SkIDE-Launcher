@@ -47,9 +47,6 @@ class Processor(args: Array<String>) {
             val t = "https://skide.21xayah.com/?_q=get&component=binary&os=$osNum&ver=$newVersion"
             if (os == OperatingSystemType.WINDOWS) {
                 downloadFile(t, File(binFolder, "ide.exe").absolutePath)
-            } else if (os == OperatingSystemType.MAC_OS) {
-                downloadFile(t, File("Sk-IDE.app/Contents/MacOS/ide.jar").absolutePath)
-
             } else {
                 downloadFile(t, File(binFolder, "ide.jar").absolutePath)
             }
@@ -86,13 +83,10 @@ class Processor(args: Array<String>) {
                     val ideFile = File(binFolder, "ide.exe")
                     list.add(ideFile.absolutePath)
                 }
-                OperatingSystemType.MAC_OS -> {
-                    list.add("open")
-                    list.add("-a")
-                    list.add("Sk-IDE.app")
-                }
                 else -> {
                     val ideFile = File(binFolder, "ide.jar")
+                    list.add("jre11/bin/java")
+                    list.add("-jar")
                     list.add(ideFile.absolutePath)
                 }
             }
@@ -114,7 +108,6 @@ class Processor(args: Array<String>) {
         val localVersions = getLocalVersions()
         val ideFile = when (os) {
             OperatingSystemType.WINDOWS -> File(binFolder, "ide.exe")
-            OperatingSystemType.MAC_OS -> File("Sk-IDE.app/Contents/MacOS/ide.jar")
             else -> File(binFolder, "ide.jar")
         }
         if (remoteVersions != localVersions || !ideFile.exists())
