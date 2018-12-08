@@ -4,6 +4,7 @@ import com.skide.installer.State
 import com.skide.installer.utils.*
 import org.json.JSONObject
 import java.io.File
+import java.lang.Exception
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import javax.swing.JOptionPane
@@ -43,8 +44,9 @@ class Processor(args: Array<String>) {
     }
 
     private fun updateBinary(newVersion: String, cb: () -> Unit) {
-        val result = JOptionPane.showConfirmDialog(null, "New Sk-IDE Version available, do you want to update? ($newVersion)")
-        if(result == 0) {
+        val result =
+            JOptionPane.showConfirmDialog(null, "New Sk-IDE Version available, do you want to update? ($newVersion)")
+        if (result == 0) {
             Thread {
                 val t = "https://skide.21xayah.com/?_q=get&component=binary&os=$osNum&ver=$newVersion"
                 if (os == OperatingSystemType.WINDOWS) {
@@ -56,10 +58,10 @@ class Processor(args: Array<String>) {
                 cb()
             }.start()
         }
-        if(result == 1) {
+        if (result == 1) {
             cb()
         }
-        if(result == 2) {
+        if (result == 2) {
             System.exit(0)
         }
     }
@@ -108,18 +110,24 @@ class Processor(args: Array<String>) {
 
     fun setup() {
         val os = getOS()
-        val remoteVersions = getRemoteVersions()
-        val localVersions = getLocalVersions()
         val ideFile = when (os) {
             OperatingSystemType.WINDOWS -> File(binFolder, "ide.exe")
             else -> File(binFolder, "ide.jar")
         }
-        if (remoteVersions != localVersions || !ideFile.exists())
-            updateBinary(remoteVersions) {
-                if(ideFile.exists())
+        try {
+            val remoteVersions = getRemoteVersions()
+            val localVersions = getLocalVersions()
+            if (remoteVersions != localVersions || !ideFile.exists())
+                updateBinary(remoteVersions) {
+                    if (ideFile.exists())
+                        start()
+                }
+            else
+                start()
+        } catch (e:Exception) {
+            if(ideFile.exists()) {
                 start()
             }
-        else
-            start()
+        }
     }
 }
