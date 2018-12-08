@@ -43,17 +43,25 @@ class Processor(args: Array<String>) {
     }
 
     private fun updateBinary(newVersion: String, cb: () -> Unit) {
-        Thread {
-            val t = "https://skide.21xayah.com/?_q=get&component=binary&os=$osNum&ver=$newVersion"
-            if (os == OperatingSystemType.WINDOWS) {
-                downloadFile(t, File(binFolder, "ide.exe").absolutePath)
-            } else {
-                downloadFile(t, File(binFolder, "ide.jar").absolutePath)
-            }
-            writeVersionFile(newVersion)
+        val result = JOptionPane.showConfirmDialog(null, "New Sk-IDE Version available, do you want to update? ($newVersion)")
+        if(result == 0) {
+            Thread {
+                val t = "https://skide.21xayah.com/?_q=get&component=binary&os=$osNum&ver=$newVersion"
+                if (os == OperatingSystemType.WINDOWS) {
+                    downloadFile(t, File(binFolder, "ide.exe").absolutePath)
+                } else {
+                    downloadFile(t, File(binFolder, "ide.jar").absolutePath)
+                }
+                writeVersionFile(newVersion)
+                cb()
+            }.start()
+        }
+        if(result == 1) {
             cb()
-        }.start()
-        JOptionPane.showMessageDialog(null, "SK-IDE is updating...")
+        }
+        if(result == 2) {
+            System.exit(0)
+        }
     }
 
     private fun writeVersionFile(bver: String) {
@@ -99,10 +107,6 @@ class Processor(args: Array<String>) {
     }
 
     fun setup() {
-        if (State.args.isNotEmpty()) {
-            start()
-            return
-        }
         val os = getOS()
         val remoteVersions = getRemoteVersions()
         val localVersions = getLocalVersions()
@@ -112,6 +116,7 @@ class Processor(args: Array<String>) {
         }
         if (remoteVersions != localVersions || !ideFile.exists())
             updateBinary(remoteVersions) {
+                if(ideFile.exists())
                 start()
             }
         else
