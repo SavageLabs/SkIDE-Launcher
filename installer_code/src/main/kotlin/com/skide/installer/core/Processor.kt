@@ -12,7 +12,6 @@ import javax.swing.JOptionPane
 
 class Processor(args: Array<String>) {
 
-    var configFolder: File
     var binFolder: File
     private val os = getOS()
     private val osNum = osToNumber(os)
@@ -29,21 +28,19 @@ class Processor(args: Array<String>) {
                     error("${target.absolutePath} is not a valid directory")
             }
         }
-        configFolder = File(folder, "conf")
         binFolder = File(folder, "bin")
-        if (!configFolder.exists()) configFolder.mkdir()
         if (!binFolder.exists()) binFolder.mkdir()
     }
 
-    private fun getLocalVersions(): String? {
-        val file = File(configFolder, "versions")
+    private fun getLocalVersions(): Triple<String, Boolean, Boolean> {
+        val file = File(binFolder, "versions")
         if (!file.exists())
-            return "undefined"
+            return Triple("", false, true)
         val obj = JSONObject(String(Files.readAllBytes(file.toPath())))
-        return obj.getString("binary")
+        return Triple(obj.getString("binary"), obj.getBoolean("beta"), obj.getBoolean("update"))
     }
 
-    private fun updateBinary(newVersion: String, cb: () -> Unit) {
+    private fun updateBinary(newVersion: String, beta:Boolean, update:Boolean, cb: () -> Unit) {
         val result =
             JOptionPane.showConfirmDialog(null, "New Sk-IDE Version available, do you want to update? ($newVersion)")
         if (result == 0) {
@@ -54,7 +51,7 @@ class Processor(args: Array<String>) {
                 } else {
                     downloadFile(t, File(binFolder, "ide.jar").absolutePath)
                 }
-                writeVersionFile(newVersion)
+                writeVersionFile(newVersion, beta, update)
                 cb()
             }.start()
         }
@@ -66,21 +63,23 @@ class Processor(args: Array<String>) {
         }
     }
 
-    private fun writeVersionFile(bver: String) {
+    private fun writeVersionFile(bver: String, beta: Boolean, update: Boolean) {
         val obj = JSONObject()
         obj.put("binary", bver)
+        obj.put("beta", beta)
+        obj.put("update", update)
 
         Files.write(
-            File(configFolder, "versions").toPath(),
+            File(binFolder, "versions").toPath(),
             obj.toString().toByteArray(),
             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
         )
     }
 
-    private fun getRemoteVersions(): String {
+    private fun getRemoteVersions(): Pair<String, String> {
         val versionResult = JSONObject(httpRequest("https://skide.21xayah.com/?_q=version").getBodyStr())
 
-        return versionResult.getString("binary")
+        return Pair(versionResult.getString("latest"), versionResult.getString("beta"))
     }
 
     fun start() {
@@ -96,6 +95,7 @@ class Processor(args: Array<String>) {
                 else -> {
                     val ideFile = File(binFolder, "ide.jar")
                     list.add("jre11/bin/java")
+                    list.add("-Dskide.mode=prod")
                     list.add("-jar")
                     list.add(ideFile.absolutePath)
                 }
@@ -110,22 +110,38 @@ class Processor(args: Array<String>) {
 
     fun setup() {
         val os = getOS()
+        val localVersions = getLocalVersions()
         val ideFile = when (os) {
             OperatingSystemType.WINDOWS -> File(binFolder, "ide.exe")
             else -> File(binFolder, "ide.jar")
         }
+        if(!localVersions.third) {
+            if (ideFile.exists()) start()
+            return
+        }
         try {
             val remoteVersions = getRemoteVersions()
-            val localVersions = getLocalVersions()
-            if (remoteVersions != localVersions || !ideFile.exists())
-                updateBinary(remoteVersions) {
-                    if (ideFile.exists())
-                        start()
+            val installedVersion = localVersions.first
+            if (localVersions.second) {
+                if (remoteVersions.second == installedVersion) {
+                    start()
+                } else {
+                    updateBinary(remoteVersions.second, localVersions.second, localVersions.third) {
+                        if (ideFile.exists()) start()
+                    }
                 }
-            else
-                start()
-        } catch (e:Exception) {
-            if(ideFile.exists()) {
+            } else {
+                if (remoteVersions.first == installedVersion) {
+                    start()
+                } else {
+                    updateBinary(remoteVersions.first, localVersions.second, localVersions.third) {
+                        if (ideFile.exists()) start()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            JOptionPane.showMessageDialog(null, "Failed to check for updates")
+            if (ideFile.exists()) {
                 start()
             }
         }
