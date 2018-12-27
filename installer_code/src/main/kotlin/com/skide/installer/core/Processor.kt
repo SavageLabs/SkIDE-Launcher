@@ -8,6 +8,8 @@ import java.lang.Exception
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import javax.swing.JOptionPane
+import javax.swing.JDialog
+import javax.swing.SwingUtilities
 
 
 class Processor(args: Array<String>) {
@@ -32,6 +34,28 @@ class Processor(args: Array<String>) {
         if (!binFolder.exists()) binFolder.mkdir()
     }
 
+    private fun getDialog(msg: String): JDialog {
+        val optionPane = JOptionPane(
+            msg,
+            JOptionPane.INFORMATION_MESSAGE,
+            JOptionPane.DEFAULT_OPTION,
+            null,
+            arrayOf(),
+            null
+        )
+
+        val dialog = JDialog()
+        dialog.title = "SkIDE Updater..."
+        dialog.isModal = true
+
+        dialog.contentPane = optionPane
+
+        dialog.defaultCloseOperation = JDialog.DO_NOTHING_ON_CLOSE
+        dialog.pack()
+
+        return dialog
+    }
+
     private fun getLocalVersions(): Triple<String, Boolean, Boolean> {
         val file = File(binFolder, "versions")
         if (!file.exists())
@@ -40,10 +64,11 @@ class Processor(args: Array<String>) {
         return Triple(obj.getString("binary"), obj.getBoolean("beta"), obj.getBoolean("update"))
     }
 
-    private fun updateBinary(newVersion: String, beta:Boolean, update:Boolean, cb: () -> Unit) {
+    private fun updateBinary(newVersion: String, beta: Boolean, update: Boolean, cb: () -> Unit) {
         val result =
             JOptionPane.showConfirmDialog(null, "New Sk-IDE Version available, do you want to update? ($newVersion)")
         if (result == 0) {
+            val dialog = getDialog("Updating to $newVersion....")
             Thread {
                 val t = "https://skide.21xayah.com/?_q=get&component=binary&os=$osNum&ver=$newVersion"
                 if (os == OperatingSystemType.WINDOWS) {
@@ -52,8 +77,10 @@ class Processor(args: Array<String>) {
                     downloadFile(t, File(binFolder, "ide.jar").absolutePath)
                 }
                 writeVersionFile(newVersion, beta, update)
+                SwingUtilities.invokeLater { dialog.dispose() }
                 cb()
             }.start()
+            dialog.isVisible = true
         }
         if (result == 1) {
             cb()
@@ -103,6 +130,7 @@ class Processor(args: Array<String>) {
             State.args.forEach {
                 list.add(it)
             }
+            builder.directory( File("/usr/share/skide/"));
             builder.command(list)
             builder.start()
         }.start()
@@ -115,7 +143,7 @@ class Processor(args: Array<String>) {
             OperatingSystemType.WINDOWS -> File(binFolder, "ide.exe")
             else -> File(binFolder, "ide.jar")
         }
-        if(!localVersions.third) {
+        if (!localVersions.third) {
             if (ideFile.exists()) start()
             return
         }
