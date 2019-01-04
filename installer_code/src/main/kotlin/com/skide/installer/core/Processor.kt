@@ -5,6 +5,8 @@ import com.skide.installer.utils.*
 import org.json.JSONObject
 import java.io.File
 import java.lang.Exception
+import java.net.URL
+import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import javax.swing.JOptionPane
@@ -31,7 +33,8 @@ class Processor(args: Array<String>) {
             }
         }
         binFolder = File(folder, "bin")
-        if (!binFolder.exists()) binFolder.mkdir()
+        if (!binFolder.exists())
+            binFolder.mkdir()
     }
 
     private fun getDialog(msg: String): JDialog {
@@ -71,11 +74,8 @@ class Processor(args: Array<String>) {
             val dialog = getDialog("Updating to $newVersion....")
             Thread {
                 val t = "https://skide.21xayah.com/?_q=get&component=binary&os=$osNum&ver=$newVersion"
-                if (os == OperatingSystemType.WINDOWS) {
-                    downloadFile(t, File(binFolder, "ide.exe").absolutePath)
-                } else {
-                    downloadFile(t, File(binFolder, "ide.jar").absolutePath)
-                }
+
+                downloadFile(t, File(binFolder, "ide.jar").absolutePath)
                 writeVersionFile(newVersion, beta, update)
                 SwingUtilities.invokeLater { dialog.dispose() }
                 cb()
@@ -111,38 +111,22 @@ class Processor(args: Array<String>) {
 
     fun start() {
         Thread {
-            val os = getOS()
-            val builder = ProcessBuilder()
-            val list = ArrayList<String>()
-            when (os) {
-                OperatingSystemType.WINDOWS -> {
-                    val ideFile = File(binFolder, "ide.exe")
-                    list.add(ideFile.absolutePath)
-                }
-                else -> {
-                    val ideFile = File(binFolder, "ide.jar")
-                    list.add("jre11/bin/java")
-                    list.add("-Dskide.mode=prod")
-                    list.add("-jar")
-                    list.add(ideFile.absolutePath)
-                }
-            }
-            State.args.forEach {
-                list.add(it)
-            }
-            builder.directory( File("/usr/share/skide/"));
-            builder.command(list)
-            builder.start()
+            val ideFile = File(binFolder, "ide.jar")
+            val classLoader = ClassLoader.getSystemClassLoader() as URLClassLoader
+            val method = URLClassLoader::class.java.getDeclaredMethod("addURL", URL::class.java)
+            method.isAccessible = true
+            method.invoke(classLoader, ideFile.toURI().toURL())
+            val coreManager = Class.forName("com.skide.CoreManager")
+            val instance = coreManager.newInstance()
+            coreManager.getDeclaredMethod("bootstrap", Array<String>::class.java).invoke(instance, State.args)
+
+
         }.start()
     }
-
     fun setup() {
-        val os = getOS()
         val localVersions = getLocalVersions()
-        val ideFile = when (os) {
-            OperatingSystemType.WINDOWS -> File(binFolder, "ide.exe")
-            else -> File(binFolder, "ide.jar")
-        }
+        val ideFile = File(binFolder, "ide.jar")
+
         if (!localVersions.third) {
             if (ideFile.exists()) start()
             return
